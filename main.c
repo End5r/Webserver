@@ -11,14 +11,21 @@ int main(){
    serverAddress.sin_port = htons(8080); // Port wird zugeschrieben
    serverAddress.sin_addr.s_addr = INADDR_ANY;
 
-   bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)); // Socket wird mit der ServerAdresse verbunden
+   if ((bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0)){
+	perror("bind failed");
+	return -1;
+   } // Socket wird mit der ServerAdresse verbunden
    //printf("bind successfull\n");
 
    listen(serverSocket, 5); // maximale Nummer an Requests in einer Schlange 
    //printf("Server listening on Port: %d\n", 8080);
 
    while(1) {
-	   int clientSocket = accept(serverSocket, NULL, NULL); //Verbindung zwischen Server und Client annehmen
+	   int clientSocket;
+	   if ((clientSocket = accept(serverSocket, NULL, NULL)) < 0){
+		perror("accept failed");
+		return -1;
+	   } //Verbindung zwischen Server und Client annehmen
 	   
 	   char recBuf[1024] = {0};	//HTTP Request Platzhalter
 	   recv(clientSocket, recBuf, 1024, 0); // Request wird "recieved"
@@ -36,7 +43,11 @@ int main(){
 		   file = "./notFound.html";
 	   }
 
-	   FILE *html = fopen(file, "r");	//Öffne und Lese aus der html
+	   FILE *html;
+	   if ((html = fopen(file, "r")) < 0){
+		perror("couldnt open file");
+		return -1;
+	   }	//Öffne und Lese aus der html
 	
 	   char buf[1024] = {0};	// Platzhalter
 	   size_t read = 0;			// Anzahl an übertragenen Bytes
